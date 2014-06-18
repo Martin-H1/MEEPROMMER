@@ -1,0 +1,64 @@
+﻿<Window x:Class="JBurn.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="500" Width="700">
+    <Grid Margin="0,0,-8,-20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="6*"/>
+            <ColumnDefinition Width="357*"/>
+            <ColumnDefinition Width="337*"/>
+        </Grid.ColumnDefinitions>
+        <Button Content="Load Image" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" Click="OnLoad" Grid.Column="1"/>
+        <Button Content="Save Image" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="90,10,0,0"  Click="OnSave" Grid.Column="1"/>
+        <Button Content="Version" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="170,10,0,0"  Click="OnVersion" Grid.Column="1"/>
+        <Button Content="Show Diff" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="251.836,10,0,0"  Click="OnDiff" Grid.Column="2"/>
+        <Button Content="Show Data" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="171.836,10,0,0"  Click="OnData" Grid.Column="2"/>
+        <Button Content="Show Image" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="91.836,10,0,0"  Click="OnImage" Grid.Column="2"/>
+        <Label Content="Serial:" Grid.Column="1" HorizontalAlignment="Left" Margin="10,69,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="_serial" Grid.Column="1" HorizontalAlignment="Left" Margin="53,69,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="_serial_SelectionChanged"/>
+        <Label Content="EEPROM Type:" Grid.Column="1" HorizontalAlignment="Left" Margin="274,69,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+        <ComboBox Name="_eepromType" SelectedIndex="0" Grid.Column="2" HorizontalAlignment="Left" Margin="8.836,69,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="_eepromType_SelectionChanged">
+            <ComboBoxItem Name="ecbi1">28C64  (8k)</ComboBoxItem>
+            <ComboBoxItem Name="ecbi2">28C128 (16k)</ComboBoxItem>
+            <ComboBoxItem Name="ecbi3">28C256 (32k)</ComboBoxItem>
+        </ComboBox>
+        <Label Content="Offset:" Grid.Column="2" HorizontalAlignment="Left" Margin="156.836,69,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="_offset" SelectedIndex="0" Grid.Column="2" HorizontalAlignment="Left" Margin="206.836,69,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="_offset_SelectionChanged">
+            <ComboBoxItem Name="ocbi0">---</ComboBoxItem>
+            <ComboBoxItem Name="ocbi1">1k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi2">2k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi3">3k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi4">4k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi5">5k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi6">6k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi7">7k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi8">8k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi9">9k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi10">10k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi11">11k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi12">12k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi13">13k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi14">14k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi15">15k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi16">16k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi17">17k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi18">18k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi19">19k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi20">20k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi21">21k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi24">24k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi25">25k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi26">26k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi27">27k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi28">28k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi29">29k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi30">30k</ComboBoxItem>
+            <ComboBoxItem Name="ocbi31">31k</ComboBoxItem>            
+        </ComboBox>
+
+        <Button Content="Clear EEPROM" HorizontalAlignment="Left" Margin="10,118,0,0" VerticalAlignment="Top" Width="85" Click="OnClear" Grid.Column="1" RenderTransformOrigin="0.769,1.6"/>
+        <Button Content="Read EEPROM" HorizontalAlignment="Left" VerticalAlignment="Top" Width="85" Margin="100,118,0,0"  Click="OnRead" Grid.Column="1"/>
+        <Button Content="Write EEPROM" HorizontalAlignment="Left" VerticalAlignment="Top" Width="85" Margin="190,118,0,0"  Click="OnWrite" Grid.Column="1"/>
+        <TextBox Name="_messages" Grid.Column="1" HorizontalAlignment="Left" Height="305" Margin="5,158,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="679" Grid.ColumnSpan="2" />
+    </Grid>
+</Window>
