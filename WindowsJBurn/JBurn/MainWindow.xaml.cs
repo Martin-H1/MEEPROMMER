@@ -1,6 +1,34 @@
-﻿using Microsoft.Win32;
+﻿/*
+ * Native Windows GUI for Arduino EEPROM programmer
+ *
+ * Initial author mario, C# port by Martin Heermance. While Mario didn't
+ * state a specific license, his text makes clear he was writing OSS, so
+ * I'm making if official by using the MIT license.
+ * 
+ * The MIT License (MIT)
+ * Copyright (c) 2014 Mario and Martin Heermance
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Ports;
 using System.Linq;
@@ -25,8 +53,6 @@ namespace JBurn
     {
         private const String revision = "$Revision: 1.5 $";
         private const String date = "$Date: 2013/07/19 05:44:46 $";
-        //used to end a line in the output window
-        private const String newline = "\n";
 
         MySerial mySerial = new MySerial();
         String selectedComPort;
@@ -35,10 +61,14 @@ namespace JBurn
         int maxAddress = 8192;
         int offset = 0;
         long filesize = 0;
-        int readwrite = 0;
         int serialSpeed = 115200;
         //int serialSpeed = 57600;
 
+        Stopwatch _stopwatch = new Stopwatch();
+
+        /// <summary>
+        /// Initialzes the serial combo box, and disables eeprom buttons.
+        /// </summary>
         public MainWindow()
         {
             InitializeComponent();
@@ -50,6 +80,11 @@ namespace JBurn
             }
         }
 
+        /// <summary>
+        /// User pressed load from file, so chose a file and read it into the buffer.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnLoad(object sender, RoutedEventArgs e)
         {
             // Configure open file dialog box
@@ -70,7 +105,7 @@ namespace JBurn
                     filesize = temp.Length;
                     for (int idx = 0; idx < temp.Length && idx < data.Length; idx++)
                         data[idx] = temp[idx];
-                    appendToLog(filesize + " bytes loaded from \"" + dlg.FileName + "\"" + newline);
+                    appendToLog(filesize + " bytes loaded from \"" + dlg.FileName + "\"\n");
                 }
                 catch (Exception ex)
                 {
@@ -79,6 +114,11 @@ namespace JBurn
             }
         }
 
+        /// <summary>
+        /// User wants to save the current eeprom image to a file.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnSave(object sender, RoutedEventArgs e)
         {
             // Configure open file dialog box
@@ -97,7 +137,7 @@ namespace JBurn
                 {
                     File.WriteAllBytes(dlg.FileName, this.data);
 
-                    appendToLog("Saving: " + dlg.FileName + newline);
+                    appendToLog("Saving: " + dlg.FileName + "\n");
                 }
                 catch (Exception ex)
                 {
@@ -106,16 +146,75 @@ namespace JBurn
             }
         }
 
+        /// <summary>
+        /// Send the version request and display the response in the callback.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnVersion(object sender, RoutedEventArgs e)
         {
-
+            appendToLog("Simple JBurn - Revision : " + revision + ", " + date + "\n");
+            if (mySerial.isConnected())
+            {
+                mySerial.Write("V\n", '\n', OnVersionCallback);
+            }
+            else
+            {
+                appendToLog("Error: Not connected to any Programmer!\n");
+            }
         }
 
+        /// <summary>
+        /// Callback from above which contains the version text.
+        /// </summary>
+        /// <param name="context"></param>
+        private void OnVersionCallback(MySerial.AsyncContext context)
+        {
+            appendToLog(context.ResponseText);
+        }
+
+        /// <summary>
+        /// Displays the differences as requested.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnDiff(object sender, RoutedEventArgs e)
         {
+            /*
+                         clearButton.setEnabled(true);
+            writeButton.setEnabled(true);
+            readButton.setEnabled(true);
+            setCursor(null); //turn off the wait cursor
 
+            textPane.setCaretPosition(textPane.getDocument().getLength());
+            if (this.diff) {
+                log.insertString(log.getLength(), "Checking difference between loaded ROM file and data on EEPROM"
+                        + "\n",null);
+                int byteCount = 0;
+                //this.readEEPROM();
+                for (int i = 0; i < filesize; i++) {
+                    if (data[i] != eeprom[i + offset]) {
+                        byteCount++;
+                    }
+                }
+                log.insertString(log.getLength(), filesize + " bytes checked from 0x" + Utility.wordToHex(offset)
+                        + " to 0x" + Utility.wordToHex(offset + (int) filesize - 1) + ", " + byteCount
+                        + " byte are different." + "\n",null);
+                textPane.setCaretPosition(textPane.getDocument().getLength());
+            }
+        } catch (BadLocationException e) {
+            System.err.println("Output Error");
         }
 
+        }
+    }*/
+        }
+
+        /// <summary>
+        /// Displays the data buffer.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnData(object sender, RoutedEventArgs e)
         {
             String line = "";
@@ -128,12 +227,17 @@ namespace JBurn
                 line = line + Utility.byteToHex(eeprom[i]) + " ";
                 if (i % 32 == 31)
                 {
-                    appendToLog(line + newline);
+                    appendToLog(line + "\n");
                     line = "";
                 }
             }
         }
 
+        /// <summary>
+        /// Displays the image to the text box.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnImage(object sender, RoutedEventArgs e)
         {
             String line = "";
@@ -146,30 +250,40 @@ namespace JBurn
                 line = line + Utility.byteToHex(data[i]) + " ";
                 if (i % 32 == 31)
                 {
-                    appendToLog(line + newline);
+                    appendToLog(line + "\n");
                     line = "";
                 }
             }
         }
 
+        /// <summary>
+        /// The userselected a serial port, so open it and enable the buttons.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void _serial_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             object temp = _serial.Items.GetItemAt(_serial.SelectedIndex);
             selectedComPort = temp != null ? temp.ToString() : "";
-            appendToLog("now selected: " + selectedComPort + newline);
+            appendToLog("now selected: " + selectedComPort + "\n");
 
             try
             {
                 mySerial.disconnect();
                 mySerial.connect(selectedComPort, serialSpeed);
-                appendToLog(selectedComPort + " is now connected." + newline);
+                appendToLog(selectedComPort + " is now connected.\n");
             }
             catch (Exception ex)
             {
-                appendToLog("Error : " + ex.Message + newline);
+                appendToLog("Error : " + ex.Message + "\n");
             }
         }
 
+        /// <summary>
+        /// The user changed the eepomr size, so update state variables.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void _eepromType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             switch (_eepromType.SelectedIndex)
@@ -191,199 +305,115 @@ namespace JBurn
             appendToLog("now selected: " +
                         ((ComboBoxItem)_eepromType.Items.GetItemAt(_eepromType.SelectedIndex)).Content +
                         ", address range = 0x0000 to 0x" +
-                        Utility.wordToHex(maxAddress - 1) + newline);
+                        Utility.wordToHex(maxAddress - 1) + "\n");
         }
 
+        /// <summary>
+        /// User changedthe base location to start writing to the eeprom.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void _offset_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             offset = _offset.SelectedIndex * 1024;
 
-            appendToLog("Offset is now set to : " + _offset.SelectedIndex + "k" + newline);
-            appendToLog("data will be written from 0x" + Utility.wordToHex(offset) + newline);
+            appendToLog("Offset is now set to : " + _offset.SelectedIndex + "k\n");
+            appendToLog("data will be written from 0x" + Utility.wordToHex(offset) + "\n");
 
             if (offset + filesize > maxAddress)
             {
-                appendToLog("WARNING!! The offset you choose will cause the current file not to fit in the choosen EEPROM anymore " + newline);
+                appendToLog("WARNING!! The offset you choose will cause the current file not to fit in the choosen EEPROM anymore\n");
             }
         }
 
+        /// <summary>
+        /// clears the in memory image and writes it to the eeprom.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnClear(object sender, RoutedEventArgs e)
         {
-            appendToLog("Clearing EEPROM. setting " + maxAddress + " bytes to 0xff" + newline);
+            appendToLog("Clearing EEPROM. setting " + maxAddress + " bytes to 0xff\n");
             for (int i = 0; i < maxAddress; i++)
             {
                 data[i] = (byte)(0xff);
             }
-            /*
-            clearButton.setEnabled(false);
-            readwrite = 0;
-            progressBar.setValue(0);
-            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            //Instances of javax.swing.SwingWorker are not reusuable, so
-            //we create new instances as needed.
-            writeTask = new WriteTask(0, maxAddress);
-            writeTask.addPropertyChangeListener(this);
-            writeTask.execute();
-             */
+
+            OnWrite(sender, e);         
         }
 
+        /// <summary>
+        /// User pushed the read button, so load the image from the eeprom.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnRead(object sender, RoutedEventArgs e)
         {
+            this.mySerial.DiscardInBuffer();
 
+            // Time the eeprom read.
+            _stopwatch.Start();
+
+            String command = "r,0000," + Utility.wordToHex(maxAddress-1) + ",20\n";
+            appendToLog("sending command. " + command);
+            mySerial.Write(command, maxAddress, OnReadCallback);
+            appendToLog("command sent.\n");
         }
 
+        /// <summary>
+        /// Callback from the above, data in response is processed.
+        /// </summary>
+        /// <param name="context"></param>
+        private void OnReadCallback(MySerial.AsyncContext context)
+        {
+            appendToLog("trying to read.\n");
+            context.ResponseRaw.CopyTo(eeprom);
+            _stopwatch.Stop();
+            appendToLog(maxAddress + " bytes read in " +  _stopwatch.ElapsedMilliseconds / 1000 + " seconds\n");
+        }
+
+        /// <summary>
+        /// Called in response to the user pushing the write eeprom button.
+        /// It sends the initial write comand, then the first block of data.
+        /// </summary>
+        /// <param name="sender">the button that sent the message</param>
+        /// <param name="e">context information that is unneeded.</param>
         private void OnWrite(object sender, RoutedEventArgs e)
         {
+            // disable buttons while we're writing.
+            _clear.IsEnabled = false;
 
+            appendToLog("sending write command.\n");
+
+            mySerial.Write("w," + Utility.wordToHex(offset) + "," + Utility.wordToHex(1024) + "\n", '%', null);
+            mySerial.Write(data, offset, 1024, '%', maxAddress, OnWriteCallback);
+            appendToLog("wrote data from 0x" + Utility.wordToHex(offset) + " to 0x" + Utility.wordToHex(offset + 1023) + "\n");
         }
 
-        /*
-    class ReadTask extends SwingWorker<Void, Void> {
-
-        public int done = 0;
-        boolean diff = false;
-        long start, end = 0;
-        int readProgress = 0;
-
-        public ReadTask(boolean d) {
-            this.diff = d;
+        /// <summary>
+        /// After writing a binary block this is the callback indicating success.
+        /// It then writes the next blockm or declares success if no more blocks
+        /// need to be written.
+        /// </summary>
+        /// <param name="context">an argument block for tracking status of the writes.</param>
+        private void OnWriteCallback(MySerial.AsyncContext context)
+        {
+            // index into the block by the amount written.
+            int addr = context.Offset + context.Count;
+            if (addr < this.maxAddress)
+            {
+                int newCount = (addr + context.Count) < maxAddress ? context.Count : (maxAddress - addr);
+                mySerial.Write("w," + Utility.wordToHex(addr) + "," + Utility.wordToHex(newCount) + "\n", '%', null);
+                mySerial.Write(data, addr, newCount, '%', 0, OnWriteCallback);
+                appendToLog("wrote data from 0x" + Utility.wordToHex(addr) + " to 0x" + Utility.wordToHex(addr + 1023) + "\n");
+            }
+            else
+            {
+                _clear.IsEnabled = true;
+            }
         }
-
  
-        @Override
-        public Void doInBackground() {
-            //check if eeprom should be read or written
-            try {
-            try {
-                //remove old data from input stream to prevent them "poisening" our
-                //data
-                mySerial.in.skip(mySerial.in.available());
-                //take time to read the eeprom
-                start = System.currentTimeMillis();
-                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(mySerial.out));
-                String line = "";
-
-
-                log.insertString(log.getLength(), "sending command." + newline,null);
-                bw.write("r,0000," + Utility.wordToHex(maxAddress) + ",20" + newline);
-                bw.flush();
-                log.insertString(log.getLength(), "command sent." + newline,null);
-                log.insertString(log.getLength(), "trying to read." + newline,null);
-                int counter = 0;
-                byte c = ' ';
-                do {
-                    eeprom[counter++] = (byte) mySerial.in.read();
-                    if (counter % 100 == 0) {
-                        readProgress = 100 * counter / maxAddress;
-                        setProgress(readProgress);
-                    }
-                } while (counter < maxAddress);
-                end = System.currentTimeMillis();
-                setProgress(100);
-
-
-            } catch (Exception e) {
-                log.insertString(log.getLength(), "Error: " + e.getMessage() + newline,null);
-            }
-        } catch (BadLocationException e) {
-            System.err.println("Output Error");
-        }
-        }
-
-        /*
-         * Executed in event dispatching thread
-         *
-        @Override
-        public void done() {
-            try{ 
-                Toolkit.getDefaultToolkit().beep();
-            clearButton.setEnabled(true);
-            writeButton.setEnabled(true);
-            readButton.setEnabled(true);
-            setCursor(null); //turn off the wait cursor
-            log.insertString(log.getLength(), maxAddress + " bytes read in " + (float) (end - start) / 1000
-                    + " seconds " + newline,null);
-            textPane.setCaretPosition(textPane.getDocument().getLength());
-            if (this.diff) {
-                log.insertString(log.getLength(), "Checking difference between loaded ROM file and data on EEPROM"
-                        + newline,null);
-                int byteCount = 0;
-                //this.readEEPROM();
-                for (int i = 0; i < filesize; i++) {
-                    if (data[i] != eeprom[i + offset]) {
-                        byteCount++;
-                    }
-                }
-                log.insertString(log.getLength(), filesize + " bytes checked from 0x" + Utility.wordToHex(offset)
-                        + " to 0x" + Utility.wordToHex(offset + (int) filesize - 1) + ", " + byteCount
-                        + " byte are different." + newline,null);
-                textPane.setCaretPosition(textPane.getDocument().getLength());
-            }
-        } catch (BadLocationException e) {
-            System.err.println("Output Error");
-        }
-
-        }
-    }
-
-    class WriteTask extends SwingWorker<Void, Void> {
-
-        public int done = 0;
-        int len;
-        int address;
-        long start, end = 0;
-        int writeProgress = 0;
-
-        public WriteTask(int a, int l) {
-            this.len = l;
-            this.address = a;
-        }
-        /*
-         * Main task. Executed in background thread.
-         *
-
-        @Override
-        public Void doInBackground() {
-            try{
-            try {
-                //take time to read the eeprom
-                start = System.currentTimeMillis();
-                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(mySerial.out));
-                String line = "";
-                log.insertString(log.getLength(), "sending command." + newline,null);
-                for (int i = 0; i < len; i += 1024) {
-                    bw.write("w," + Utility.wordToHex(address + i) + "," + Utility.wordToHex(1024) + newline);
-                    bw.flush();
-                    writeProgress = i * 100 / len;
-                    setProgress(writeProgress);
-                    mySerial.out.write(data, i, 1024);
-                    log.insertString(log.getLength(), "wrote data from 0x" + Utility.wordToHex(address + i)
-                            + " to 0x" + Utility.wordToHex(address + i + 1023) + newline,null);
-                    textPane.setCaretPosition(textPane.getDocument().getLength());
-
-                    byte c = ' ';
-                    do {
-                        c = (byte) mySerial.in.read();
-                    } while (c != '%');
-
-                }
-                end = System.currentTimeMillis();
-                setProgress(100);
-            } catch (Exception e) {
-                log.insertString(log.getLength(), "Error: " + e.getMessage() + newline,null);
-            }
-
-        } catch (BadLocationException e) {
-            System.err.println("Output Error");
-        }
-            return null;
-            
-        }
-
-        /*
-         * Executed in event dispatching thread
-         *
-        @Override
+        /* 
         public void done() {
             Toolkit.getDefaultToolkit().beep();
             clearButton.setEnabled(true);
@@ -391,83 +421,20 @@ namespace JBurn
             readButton.setEnabled(true);
             setCursor(null); //turn off the wait cursor
             try{
-            log.insertString(log.getLength(), "data sent." + newline,null);
+            log.insertString(log.getLength(), "data sent." + "\n",null);
 
             log.insertString(log.getLength(), "wrote " + len + " bytes from 0x"
                     + Utility.wordToHex(address) + " to 0x"
                     + Utility.wordToHex(address + (int) len - 1) + " in "
                     + (float) (end - start) / 1000
-                    + " seconds " + newline,null);
+                    + " seconds " + "\n",null);
             textPane.setCaretPosition(textPane.getDocument().getLength());
-        } catch (BadLocationException e) {
-            System.err.println("Output Error");
-        }
-
-        }
-    }
-
-    private void writeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_writeButtonActionPerformed
-        writeButton.setEnabled(false);
-        progressBar.setValue(0);
-        readwrite = 1;
-        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        //Instances of javax.swing.SwingWorker are not reusuable, so
-        //we create new instances as needed.
-        writeTask = new WriteTask(offset, (int) filesize);
-        writeTask.addPropertyChangeListener(this);
-        writeTask.execute();
-
-    }//GEN-LAST:event_writeButtonActionPerformed
-
-    private void versionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_versionButtonActionPerformed
-            appendToLog("Simple JBurn - Revision : " + revision + ", " + date + newline);
-        if (mySerial.isConnected()) {
-            try {
-                mySerial.out.write('V');
-                mySerial.out.write('\n');
-                String line = "";
-                byte c = ' ';
-                do {
-                    c = (byte) mySerial.in.read();
-                    line = line + (char) c;
-                    if (c == '\n') {
-                        appendToLog( line);
-                        line = "";
-                    }
-                } while (c != '\n');
-            } catch (Exception e) {
-                appendToLog("Error: " + e.getMessage() + newline);
-            }
-        } else {
-            appendToLog("Error: Not connected to any Programmer!" + newline);
-        }
-    }//GEN-LAST:event_versionButtonActionPerformed
-
-    private void showDiffButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showDiffButtonActionPerformed
-        readButton.setEnabled(false);
-        readwrite = 2;
-        progressBar.setValue(0);
-        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        //Instances of javax.swing.SwingWorker are not reusuable, so
-        //we create new instances as needed.
-        readTask = new ReadTask(true);
-        readTask.addPropertyChangeListener(this);
-        readTask.execute();
-    }//GEN-LAST:event_showDiffButtonActionPerformed
-
-    private void readButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_readButtonActionPerformed
-        readButton.setEnabled(false);
-        readwrite = 2;
-        progressBar.setValue(0);
-        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        //Instances of javax.swing.SwingWorker are not reusuable, so
-        //we create new instances as needed.
-        readTask = new ReadTask(false);
-        readTask.addPropertyChangeListener(this);
-        readTask.execute();
-    }//GEN-LAST:event_readButtonActionPerformed
          */
-        
+
+        /// <summary>
+        /// Writes the message to the text box at the bottom.
+        /// </summary>
+        /// <param name="text">the message to write</param>
         private void appendToLog(String text)
         {
             if (_messages != null)
