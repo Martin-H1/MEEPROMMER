@@ -57,8 +57,8 @@
         </ComboBox>
 
         <Button Name="_clear" Content="Clear EEPROM" HorizontalAlignment="Left" Margin="10,118,0,0" VerticalAlignment="Top" Width="85" Click="OnClear" Grid.Column="1" RenderTransformOrigin="0.769,1.6"/>
-        <Button Content="Read EEPROM" HorizontalAlignment="Left" VerticalAlignment="Top" Width="85" Margin="100,118,0,0"  Click="OnRead" Grid.Column="1"/>
-        <Button Content="Write EEPROM" HorizontalAlignment="Left" VerticalAlignment="Top" Width="85" Margin="190,118,0,0"  Click="OnWrite" Grid.Column="1"/>
+        <Button Name="_read" Content="Read EEPROM" HorizontalAlignment="Left" VerticalAlignment="Top" Width="85" Margin="100,118,0,0"  Click="OnRead" Grid.Column="1"/>
+        <Button Name="_write" Content="Write EEPROM" HorizontalAlignment="Left" VerticalAlignment="Top" Width="85" Margin="190,118,0,0"  Click="OnWrite" Grid.Column="1"/>
         <TextBox Name="_messages" VerticalScrollBarVisibility="Visible" Grid.Column="1" HorizontalAlignment="Left" Height="305" Margin="5,158,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="679" Grid.ColumnSpan="2" />
     </Grid>
 </Window>

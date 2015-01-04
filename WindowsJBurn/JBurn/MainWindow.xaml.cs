@@ -56,8 +56,8 @@ namespace JBurn
 
         MySerial mySerial = new MySerial();
         String selectedComPort;
-        byte[] data = new byte[32768];
-        byte[] eeprom = new byte[32768];
+        byte[] data = new byte[32769];
+        byte[] eeprom = new byte[32769];
         int maxAddress = 8192;
         int offset = 0;
         long filesize = 0;
@@ -180,34 +180,23 @@ namespace JBurn
         /// <param name="e"></param>
         private void OnDiff(object sender, RoutedEventArgs e)
         {
-            /*
-                         clearButton.setEnabled(true);
-            writeButton.setEnabled(true);
-            readButton.setEnabled(true);
-            setCursor(null); //turn off the wait cursor
+            this._clear.IsEnabled = true;
+            this._write.IsEnabled = true;
+            this._read.IsEnabled = true;
 
-            textPane.setCaretPosition(textPane.getDocument().getLength());
-            if (this.diff) {
-                log.insertString(log.getLength(), "Checking difference between loaded ROM file and data on EEPROM"
-                        + "\n",null);
-                int byteCount = 0;
-                //this.readEEPROM();
-                for (int i = 0; i < filesize; i++) {
-                    if (data[i] != eeprom[i + offset]) {
-                        byteCount++;
-                    }
+            appendToLog("Checking difference between loaded ROM file and data on EEPROM.\n");
+            int byteCount = 0;
+            for (int i = 0; i < filesize; i++)
+            {
+                if (data[i] != eeprom[i + offset])
+                {
+                    appendToLog("bytes at 0x" + Utility.wordToHex(i) + "are different.\n");
+                    byteCount++;
                 }
-                log.insertString(log.getLength(), filesize + " bytes checked from 0x" + Utility.wordToHex(offset)
-                        + " to 0x" + Utility.wordToHex(offset + (int) filesize - 1) + ", " + byteCount
-                        + " byte are different." + "\n",null);
-                textPane.setCaretPosition(textPane.getDocument().getLength());
             }
-        } catch (BadLocationException e) {
-            System.err.println("Output Error");
-        }
-
-        }
-    }*/
+            appendToLog(filesize + " bytes checked from 0x" + Utility.wordToHex(offset)
+                        + " to 0x" + Utility.wordToHex(offset + (int) filesize - 1) + ", " + byteCount
+                        + " byte are different.\n");
         }
 
         /// <summary>
@@ -354,7 +343,7 @@ namespace JBurn
             // Time the eeprom read.
             _stopwatch.Start();
 
-            String command = "r,0000," + Utility.wordToHex(maxAddress-1) + ",20\n";
+            String command = "r,0000," + Utility.wordToHex(maxAddress) + ",20\n"; // removed minus 1
             appendToLog("sending command. " + command);
             mySerial.Write(command, maxAddress, OnReadCallback);
             appendToLog("command sent.\n");
@@ -382,6 +371,8 @@ namespace JBurn
         {
             // disable buttons while we're writing.
             _clear.IsEnabled = false;
+            _write.IsEnabled = false;
+            _read.IsEnabled = false;
 
             appendToLog("sending write command.\n");
 
@@ -410,26 +401,10 @@ namespace JBurn
             else
             {
                 _clear.IsEnabled = true;
+                _write.IsEnabled = true;
+                _read.IsEnabled = true;
             }
         }
- 
-        /* 
-        public void done() {
-            Toolkit.getDefaultToolkit().beep();
-            clearButton.setEnabled(true);
-            writeButton.setEnabled(true);
-            readButton.setEnabled(true);
-            setCursor(null); //turn off the wait cursor
-            try{
-            log.insertString(log.getLength(), "data sent." + "\n",null);
-
-            log.insertString(log.getLength(), "wrote " + len + " bytes from 0x"
-                    + Utility.wordToHex(address) + " to 0x"
-                    + Utility.wordToHex(address + (int) len - 1) + " in "
-                    + (float) (end - start) / 1000
-                    + " seconds " + "\n",null);
-            textPane.setCaretPosition(textPane.getDocument().getLength());
-         */
 
         /// <summary>
         /// Writes the message to the text box at the bottom.
