@@ -91,7 +91,7 @@ namespace JBurn
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
             dlg.FileName = "Document"; // Default file name
             dlg.DefaultExt = ".bin"; // Default file extension
-            dlg.Filter = "Intel image files (.bin)|*.bin|CC65 mages files|*.65b"; // Filter files by extension 
+            dlg.Filter = "Intel image files (.bin)|*.bin|CC65 mages files|*.65b|Ophis ROM file (.rom)|*.rom"; // Filter files by extension 
 
             // Show open file dialog box
             Nullable<bool> result = dlg.ShowDialog();
